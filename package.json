@@ -1,0 +1,20 @@
+{
+  "name": "fenghuangxiu",
+  "version": "1.0.0",
+  "description": "凤凰秀直播代理 Docker 服务",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "keywords": [
+    "fengshows",
+    "docker",
+    "stream",
+    "proxy"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

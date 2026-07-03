@@ -1,0 +1,11 @@
+services:
+  fengshows:
+    build: .
+    container_name: fengshows
+    ports:
+      - "3233:3233"
+    environment:
+      PORT: 3233
+      PHONE: "${PHONE}"
+      PASSWORD: "${PASSWORD}"
+    restart: unless-stopped
