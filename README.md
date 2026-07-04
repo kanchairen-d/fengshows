@@ -144,7 +144,7 @@ docker compose up -d --build
 
 # 🐘 PHP 版
 
-> 单文件，放到 PHP Web 服务器的任意目录即可运行。
+> 单文件，放到支持 PHP 的 Web 目录下即可运行。
 
 ## 环境要求
 
@@ -152,28 +152,70 @@ docker compose up -d --build
 - cURL 扩展（`php-curl`）
 - 文件写入权限（运行时保存配置和 token 缓存）
 
-## 安装
+---
+
+## 方式一：NAS 一键部署（推荐）
+
+如果你用 NAS 跑 Docker，部署一个 PHP 运行环境容器，把 `fhx.php` 丢进去就能用。
+
+### 1. 创建 PHP 运行环境容器
+
+```bash
+docker run -d \
+  --name php-runtime \
+  --restart=always \
+  -p 5080:80 \
+  -p 5090:8080 \
+  -e ADMIN_USER=admin \
+  -e ADMIN_PASS=123456 \
+  -v php-runtime_repo:/var/www/repo \
+  livecodesvip/php-runtime:latest
+```
+
+| 参数 | 说明 |
+|------|------|
+| `-p 5080:80` | Web 访问端口 |
+| `-p 5090:8080` | 管理后台端口 |
+| `-v php-runtime_repo:/var/www/repo` | 代码存放目录（Docker 卷） |
+
+### 2. 放入 fhx.php
+
+```bash
+# 下载文件到容器挂载目录
+wget -O /var/www/repo/fhx.php https://raw.githubusercontent.com/kanchairen-d/fengshows/main/php/fhx.php
+```
+
+如果是群晖/威联通等 NAS，也可以在文件管理器里找到 Docker 卷对应的路径，直接把 `fhx.php` 复制进去。
+
+### 3. 访问使用
+
+```
+http://你的NAS地址:5080/fhx.php          ← 首页（频道列表）
+http://你的NAS地址:5080/fhx.php?ch=fhzx  ← 凤凰资讯
+http://你的NAS地址:5080/fhx.php?ch=fhzw  ← 凤凰中文
+http://你的NAS地址:5080/fhx.php?ch=fhhk  ← 凤凰香港
+```
+
+> 💡 容器挂载目录 `/var/www/repo` 下的所有 PHP 文件均可直接通过 `http://NAS:5080/文件名.php` 访问，放其他 PHP 项目也一样可用。
+
+---
+
+## 方式二：已有 PHP 环境
+
+如果已有 Nginx/Apache + PHP 环境，直接把 `fhx.php` 放到网站目录即可。
 
 ### 下载文件
 
 ```bash
-# 方式一：从 GitHub 下载
 wget https://raw.githubusercontent.com/kanchairen-d/fengshows/main/php/fhx.php
-
-# 方式二：或克隆整个仓库
-git clone https://github.com/kanchairen-d/fengshows.git
-cp fengshows/php/fhx.php /你的网站目录/
 ```
 
-### 部署到 Web 服务器
-
-**Nginx + PHP-FPM** 示例：
+### Nginx 配置示例
 
 ```nginx
 server {
     listen 80;
     server_name fengshows.example.com;
-
     root /var/www/fengshows;
     index fhx.php;
 
@@ -186,7 +228,7 @@ server {
 }
 ```
 
-**Apache + mod_php**：直接把 `fhx.php` 放到网站目录即可。
+Apache 用户：直接把 `fhx.php` 放入网站目录即可。
 
 ---
 
