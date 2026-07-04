@@ -1,173 +1,150 @@
-# fenghuangxiu
+# 📺 凤凰秀直播代理
 
-凤凰秀直播代理 Docker 服务，默认端口 **3233**。
+> 凤凰卫视三路直播频道（资讯/中文/香港）的 Docker 代理服务，支持 Web 播放、画质自适应、账号密码 Web 配置。
 
-## 功能
+![Docker](https://img.shields.io/badge/Docker-✓-2496ED?logo=docker&logoColor=white)
+![Node](https://img.shields.io/badge/Node-18+-339933?logo=npm&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
-- `/fhzx` → 凤凰资讯
-- `/fhzw` → 凤凰中文
-- `/fhhk` → 凤凰香港
-- `/healthz` → 健康检查
-- `/` → 美化首页
+---
 
-## 目录说明
+## 🚀 快速启动
 
-```text
-fenghuangxiu/
-├─ app.js
-├─ package.json
-├─ Dockerfile
-├─ docker-compose.yml
-├─ .dockerignore
-├─ .gitignore
-├─ .env.example
-└─ README.md
+### 方式一：Docker Compose（推荐）
+
+```yaml
+# docker-compose.yml
+services:
+  fengshows:
+    image: ghcr.io/kanchairen-d/fengshows:latest
+    container_name: fengshows
+    ports:
+      - "3233:3233"
+    restart: unless-stopped
 ```
 
-## 本地准备
+```bash
+docker compose up -d
+```
 
-先复制环境变量文件：
+访问 http://你的IP:3233 进入首页 → 设置页面配置手机号和密码即可。
+
+---
+
+### 方式二：环境变量配置
+
+如需容器启动时自动带入账号密码：
 
 ```bash
 cp .env.example .env
 ```
 
-然后编辑 `.env`：
+编辑 `.env`：
 
 ```env
 PORT=3233
-PHONE=你的手机号
+PHONE=186xxxxxxxx
 PASSWORD=你的密码
 ```
 
-> 不配置 `PHONE` 和 `PASSWORD` 也能跑，但通常只能获取普通画质。
+然后启动：
+
+```bash
+docker compose up -d --build
+```
+
+> ⚠️ 不配置账号也能跑，但只能获取普通画质。配置后自动切换到高清画质。
 
 ---
 
-## Docker Compose 启动
-
-你的环境如果需要 docker 组权限，按你现在的习惯用这个：
+### 方式三：纯 Docker 命令
 
 ```bash
-sg docker -c "docker compose up -d --build"
-```
-
-查看日志：
-
-```bash
-sg docker -c "docker logs -f fengshows"
-```
-
-停止：
-
-```bash
-sg docker -c "docker compose down"
-```
-
----
-
-## Docker 直接启动
-
-构建镜像：
-
-```bash
-sg docker -c "docker build -t fenghuangxiu:latest ."
-```
-
-运行容器：
-
-```bash
-sg docker -c "docker run -d \
+docker run -d \
   --name fengshows \
   -p 3233:3233 \
-  -e PORT=3233 \
-  -e PHONE='你的手机号' \
-  -e PASSWORD='你的密码' \
   --restart unless-stopped \
-  fenghuangxiu:latest"
+  ghcr.io/kanchairen-d/fengshows:latest
+```
+
+带账号：
+
+```bash
+docker run -d \
+  --name fengshows \
+  -p 3233:3233 \
+  -e PHONE=186xxxxxxxx \
+  -e PASSWORD=你的密码 \
+  --restart unless-stopped \
+  ghcr.io/kanchairen-d/fengshows:latest
 ```
 
 ---
 
-## 访问地址
-
-假设你的 NAS IP 是 `192.168.1.100`：
-
-- `http://192.168.1.100:3233/`
-- `http://192.168.1.100:3233/fhzx`
-- `http://192.168.1.100:3233/fhzw`
-- `http://192.168.1.100:3233/fhhk`
-- `http://192.168.1.100:3233/healthz`
-
----
-
-## 上传到 GitHub
-
-### 1）如果你要改成同名目录，先执行
+### 方式四：本地构建
 
 ```bash
-cd /vol1/@apphome/trim.openclaw/data/workspace
-mv fengshows-docker fenghuangxiu
-cd fenghuangxiu
-```
-
-### 2）初始化 git
-
-```bash
-git init
-git add .
-git commit -m "init: fenghuangxiu docker service"
-```
-
-### 3）GitHub 仓库地址
-
-```text
-https://github.com/kanchairen-d/fenghuangxiu.git
-```
-
-### 4）绑定远程并推送
-
-```bash
-git branch -M main
-git remote add origin https://github.com/kanchairen-d/fenghuangxiu.git
-git push -u origin main
-```
-
-如果你用 SSH：
-
-```bash
-git remote add origin git@github.com:kanchairen-d/fenghuangxiu.git
-git push -u origin main
+git clone https://github.com/kanchairen-d/fengshows.git
+cd fengshows
+docker compose up -d --build
 ```
 
 ---
 
-## 更新项目
+## 📡 频道地址
 
-以后修改后：
+| 频道 | 路径 | 说明 |
+|------|------|------|
+| 凤凰资讯 | `/fhzx` | 24h 新闻直播 |
+| 凤凰中文 | `/fhzw` | 综合频道 |
+| 凤凰香港 | `/fhhk` | 香港版 |
+| 首页 | `/` | 频道选择 & 设置 |
+| 健康检查 | `/healthz` | Docker 健康探测 |
 
-```bash
-git add .
-git commit -m "feat: update service"
-git push
+访问示例：`http://192.168.1.100:3233/fhzx`
+
+---
+
+## 🔧 管理
+
+- **配置页面**：浏览器打开首页 → 设置 ⚙️ → 输入手机号和密码
+- **清除配置**：设置页面点击「清除凭证」
+- **密码显示**：输入框右侧 👁️ 可切换明文/密文
+- **画质切换**：配置账号后自动使用高清（fhd），否则普通
+
+---
+
+## 📦 镜像
+
+预构建镜像从 GitHub Container Registry 拉取：
+
 ```
-
-然后在服务器上重新构建：
-
-```bash
-sg docker -c "docker compose up -d --build"
+ghcr.io/kanchairen-d/fengshows:latest
 ```
 
 ---
 
-## 注意事项
+## ⚡ 其他命令
 
-1. **不要把 `.env` 上传到 GitHub**
-2. 上游接口如果变动，项目可能失效
-3. 如果你后面要配域名，可以再接 Nginx/Caddy 反代
+```bash
+# 查看日志
+docker logs -f fengshows
+
+# 停止
+docker compose down
+
+# 重启
+docker compose restart
+
+# 重建镜像并重启
+docker compose up -d --build
+```
 
 ---
 
-## 残留说明
+## ❗️ 注意
 
-项目里只保留运行必需文件，不放临时测试文件、不放下载缓存、不放依赖目录。
+- `.env` 文件包含敏感信息，**不要提交到 GitHub**
+- 配置页面保存的凭证存在容器内 `config.json`，重启容器后依然保留
+- 上游接口变动可能导致服务失效
+- 建议配合 Nginx/Caddy 反代配置域名和 HTTPS
