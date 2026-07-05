@@ -421,6 +421,7 @@ $quality = $hasCreds ? '720p (高清)' : '480p (普通)';
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $baseUrl = $protocol . '://' . $host;
+$scriptPath = $_SERVER['SCRIPT_NAME']; // 自适应路径
 ?>
 <!doctype html>
 <html lang="zh-CN">
@@ -500,7 +501,7 @@ $baseUrl = $protocol . '://' . $host;
   <script>
     function copyUrl(ch) {
       try {
-        const url = '<?= $baseUrl ?>' + '/fhx.php?ch=' + ch;
+        const url = '<?= $baseUrl . $scriptPath ?>' + '?ch=' + ch;
         const ta = document.createElement('textarea');
         ta.value = url; ta.style.position = 'fixed'; ta.style.left = '-9999px';
         document.body.appendChild(ta); ta.select(); document.execCommand('copy');

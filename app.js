@@ -265,7 +265,8 @@ app.get("/", (req, res) => {
     async function copyUrl(ch) {
       try {
         // 复制自己代理的地址（端口变了、反代了都自动适配）
-        const url = window.location.origin + '/' + ch;
+        const base = window.location.pathname.replace(/\/[^\/]*$/, '/') || '/';
+        const url = window.location.origin + base + ch;
         const ta = document.createElement('textarea');
         ta.value = url;
         ta.style.position = 'fixed';
