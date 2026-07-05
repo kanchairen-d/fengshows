@@ -418,7 +418,7 @@ $hasCreds = !empty($cfg['phone']) && !empty($cfg['password']);
 $quality = $hasCreds ? '720p (高清)' : '480p (普通)';
 
 // 动态获取当前 URL
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$protocol = (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ? 'https' : ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http');
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $baseUrl = $protocol . '://' . $host;
 $scriptPath = $_SERVER['SCRIPT_NAME']; // 自适应路径
