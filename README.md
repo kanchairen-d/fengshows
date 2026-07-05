@@ -162,21 +162,23 @@ docker compose up -d --build
 
 ```bash
 docker run -d \
-  --name php-runtime \
+  --name php-box \
   --restart=always \
-  -p 5080:80 \
-  -p 5090:8080 \
+  -p 5080:5080 \
+  -p 5090:5090 \
   -e ADMIN_USER=admin \
   -e ADMIN_PASS=123456 \
-  -v php-runtime_repo:/var/www/repo \
-  livecodesvip/php-runtime:latest
+  -v ./repo:/var/www/repo \
+  ghcr.io/kanchairen-d/php-box:latest
 ```
 
 | 参数 | 说明 |
 |------|------|
-| `-p 5080:80` | Web 访问端口 |
-| `-p 5090:8080` | 管理后台端口 |
-| `-v php-runtime_repo:/var/www/repo` | 代码存放目录（Docker 卷） |
+| `-p 5080:5080` | Web 访问端口（PHP 站点） |
+| `-p 5090:5090` | 管理后台端口 |
+| `-v ./repo:/var/www/repo` | 代码存放目录（当前目录下的 repo 文件夹） |
+| `-e ADMIN_USER` | 后台用户名（默认 admin） |
+| `-e ADMIN_PASS` | 后台密码（默认 admin） |
 
 ### 2. 放入 fhx.php
 
