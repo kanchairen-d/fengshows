@@ -1,3 +1,7 @@
 node_modules/
 .env
 config.json
+# 凤凰秀配置文件（含隐私）
+.fengshows_*
+.fenghshows_*
+

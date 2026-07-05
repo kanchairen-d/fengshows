@@ -387,8 +387,17 @@ if ($channel) {
 
     $liveUrl = getLiveUrl($channel['id'], $quality, $token);
 
+    // Token 失效时删缓存重新登录，再试一次 fhd
     if (!$liveUrl && $quality === 'fhd') {
-        $liveUrl = getLiveUrl($channel['id'], 'hd', null);
+        if (file_exists(TOKEN_CACHE_FILE)) @unlink(TOKEN_CACHE_FILE);
+        $newToken = getValidToken();
+        if ($newToken) {
+            $liveUrl = getLiveUrl($channel['id'], 'fhd', $newToken);
+        }
+        // 还不行才降级 hd
+        if (!$liveUrl) {
+            $liveUrl = getLiveUrl($channel['id'], 'hd', null);
+        }
     }
 
     if ($liveUrl) {
