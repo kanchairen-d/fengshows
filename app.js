@@ -265,7 +265,7 @@ app.get("/", (req, res) => {
     async function copyUrl(ch) {
       try {
         // 复制自己代理的地址（端口变了、反代了都自动适配）
-        const base = window.location.pathname.replace(/\/[^\/]*$/, '/') || '/';
+        const base = window.location.pathname.split('/').slice(0, -1).join('/') + '/';
         const url = window.location.origin + base + ch;
         const ta = document.createElement('textarea');
         ta.value = url;
@@ -433,6 +433,12 @@ app.get("/settings", (req, res) => {
     .msg-err { background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.25); color: #fca5a5; }
     code { background: rgba(255,255,255,.08); padding: 2px 6px; border-radius: 4px; }
   </style>
+  <script>
+  function togglePW() {
+    var el = document.getElementById('password');
+    el.type = el.type === 'password' ? 'text' : 'password';
+  }
+  </script>
 </head>
 <body>
   <div class="wrap">
