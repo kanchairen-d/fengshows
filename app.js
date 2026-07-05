@@ -612,7 +612,22 @@ async function getStreamUrl(channelId) {
       return finalUrl;
     }
 
+    // Token 失效时重新登录再试 fhd
     if (quality === "fhd") {
+      cachedToken = null;
+      const newToken = await getValidToken(phone, password);
+      if (newToken) {
+        const retryRes = await fetch(`https://api.fengshows.cn/hub/live/auth-url?live_qa=fhd&live_id=${channelId}`, {
+          headers: { ...headers, Token: newToken }
+        });
+        const retryData = await retryRes.json();
+        if (retryData?.data?.live_url) {
+          const finalUrl = await resolveRedirect(retryData.data.live_url);
+          streamUrlCache[cacheKey] = { url: finalUrl, expiry: Date.now() + 30000 };
+          return finalUrl;
+        }
+      }
+      // 还不行才降级 hd
       const fallbackUrl = `https://api.fengshows.cn/hub/live/auth-url?live_qa=hd&live_id=${channelId}`;
       const fbHeaders = { ...headers };
       delete fbHeaders.Token;
