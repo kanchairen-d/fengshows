@@ -1,0 +1,249 @@
+//凤凰秀官方直播
+//公众号:雾栈手记
+//支持频道：
+//首页,https://你部署的域名
+//凤凰资讯,https://你部署的域名/fhzx
+//凤凰中文,https://你部署的域名/fhzw
+//凤凰香港,https://你部署的域名/fhhk
+//1280X720画质请配置账号
+//848X480画质是未配置账号
+
+const CHANNELS = {
+ "fhzx": "7c96b084-60e1-40a9-89c5-682b994fb680",
+ "fhzw": "f7f48462-9b13-485b-8101-7b54716411ec",
+ "fhhk": "15e02d92-1698-416c-af2f-3e9a872b4d78",
+};
+let cachedToken = null;
+
+// ===== Web 页面 =====
+function buildPage(domain, hasAccount) {
+    var qDot = hasAccount ? "ok-dot" : "warn-dot";
+    var qText = hasAccount ? "当前画质：720p (高清)" : "当前画质：480p (普通)";
+
+    var channelsHtml = "";
+    var names = { fhzx: "凤凰资讯", fhzw: "凤凰中文", fhhk: "凤凰香港" };
+    var descs = { fhzx: "资讯直播频道", fhzw: "中文综合频道", fhhk: "香港地区频道" };
+    for (var key in CHANNELS) {
+        var link = "https://" + domain + "/" + key;
+        channelsHtml +=
+        '<article class="card">' +
+        '<h3>' + (names[key] || key) + '</h3>' +
+        '<p>' + (descs[key] || "") + '</p>' +
+        '<div class="actions">' +
+        '<a class="btn btn-primary" href="' + link + '">立即播放</a>' +
+        '<button class="btn btn-ghost" onclick="copyUrl(\'' + key + '\')">复制播放地址</button>' +
+        '</div>' +
+        '</article>';
+    }
+
+    var css = [
+        ':root {',
+        '--bg1: #0f172a; --bg2: #111827; --card: rgba(255,255,255,.08);',
+        '--border: rgba(255,255,255,.12); --text: #f8fafc; --muted: #cbd5e1;',
+        '--accent: #f97316; --accent2: #fb7185; --ok: #22c55e; --warn: #eab308;',
+        '--shadow: 0 20px 50px rgba(0,0,0,.35);',
+        '}',
+        '* { box-sizing: border-box; margin:0; padding:0; }',
+        'body {',
+        'margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;',
+        'color: var(--text);',
+        'background: radial-gradient(circle at top left, rgba(249,115,22,.25), transparent 28%), radial-gradient(circle at top right, rgba(251,113,133,.18), transparent 24%), linear-gradient(135deg, var(--bg1), var(--bg2));',
+        'min-height: 100vh;',
+        '}',
+        '.wrap { max-width: 1100px; margin: 0 auto; padding: 48px 20px 64px; }',
+        '.hero {',
+        'padding: 28px 28px 22px; border: 1px solid var(--border); border-radius: 24px;',
+        'background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));',
+        'backdrop-filter: blur(12px); box-shadow: var(--shadow);',
+        '}',
+        '.badge {',
+        'display: inline-block; padding: 6px 12px; border-radius: 999px;',
+        'background: rgba(249,115,22,.16); border: 1px solid rgba(249,115,22,.35);',
+        'color: #fed7aa; font-size: 13px; margin-bottom: 16px;',
+        '}',
+        'h1 { margin: 0 0 12px; font-size: clamp(32px, 5vw, 52px); line-height: 1.08; white-space: nowrap; }',
+        '.meta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }',
+        '.pill {',
+        'padding: 10px 14px; border-radius: 14px; background: rgba(255,255,255,.06);',
+        'border: 1px solid var(--border); color: #e5e7eb; font-size: 14px;',
+        '}',
+        '.pill a { color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }',
+        '.pill a:hover { color: var(--accent); }',
+        '.section-title { font-size: 18px; font-weight: 600; margin: 32px 0 14px; }',
+        '.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }',
+        '.card {',
+        'position: relative; overflow: hidden; padding: 24px; border-radius: 20px;',
+        'background: rgba(255,255,255,.04); border: 1px solid var(--border);',
+        'transition: all .2s ease;',
+        '}',
+        '.card:hover { background: rgba(255,255,255,.07); border-color: rgba(249,115,22,.3); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,.25); }',
+        '.card::after {',
+        'content: ""; position: absolute; inset: auto -30px -30px auto;',
+        'width: 120px; height: 120px; border-radius: 50%;',
+        'background: radial-gradient(circle, rgba(249,115,22,.25), transparent 70%); pointer-events: none;',
+        '}',
+        '.card h3 { margin: 0 0 10px; font-size: 24px; }',
+        '.card p { margin: 0 0 18px; color: var(--muted); min-height: 48px; }',
+        '.actions { display: flex; gap: 10px; flex-wrap: wrap; }',
+        '.btn {',
+        'display: inline-flex; align-items: center; justify-content: center;',
+        'min-width: 104px; padding: 11px 16px; border-radius: 14px;',
+        'text-decoration: none; font-weight: 600; cursor: pointer; border: none; font-size: 14px;',
+        'transition: opacity .18s ease, transform .18s ease;',
+        '}',
+        '.btn:hover { opacity: .95; transform: translateY(-1px); }',
+        '.btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }',
+        '.btn-ghost { background: rgba(255,255,255,.06); color: #fff; border: 1px solid var(--border); }',
+        '.footer {',
+        'margin-top: 30px; padding: 18px 20px; border-radius: 18px;',
+        'background: rgba(255,255,255,.05); border: 1px solid var(--border);',
+        'color: var(--muted); line-height: 1.8;',
+        '}',
+        '.footer a { color: #f97316; }',
+        'code { background: rgba(255,255,255,.08); padding: 2px 8px; border-radius: 8px; color: #fff; }',
+        '.ok-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 10px rgba(34,197,94,.9); margin-right: 8px; vertical-align: middle; }',
+        '.warn-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 10px rgba(234,179,8,.7); margin-right: 8px; vertical-align: middle; }',
+        '@media (max-width: 640px) { .wrap { padding-top: 28px; } .hero, .card { padding: 18px; } }'
+    ].join("\n");
+
+    var html = '<!DOCTYPE html>';
+    html += '<html lang="zh-CN">';
+    html += '<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">';
+    html += '<title>凤凰秀-Cloudflare Workers版</title><style>' + css + '</style>';
+    html += '<script>';
+    html += 'function copyUrl(ch){';
+    html += 'var url=window.location.origin+"/"+ch;';
+    html += 'try{';
+    html += 'var ta=document.createElement("textarea");ta.value=url;ta.style.position="fixed";ta.style.left="-9999px";';
+    html += 'document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);';
+    html += 'showToast("播放地址已复制");';
+    html += '}catch(e){showToast("复制失败: "+e.message)}';
+    html += '}';
+    html += 'function showToast(msg){';
+    html += 'var el=document.getElementById("toast");if(el){el.textContent=msg;el.style.display="block";';
+    html += 'setTimeout(function(){el.textContent="";el.style.display="none"},2000)}';
+    html += '}';
+    html += '</script></head><body>';
+    html += '<div id="toast" style="position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:999;background:rgba(0,0,0,.85);color:#fff;padding:12px 24px;border-radius:12px;font-size:15px;display:none;pointer-events:none;"></div>';
+    html += '<div class="wrap">';
+    html += '<section class="hero">';
+    html += '<div class="badge">公众号:雾栈手记</div>';
+    html += '<h1>凤凰秀<span style="display:inline-block;padding:5px 10px;border-radius:999px;background:rgba(249,115,22,.16);border:1px solid rgba(249,115,22,.35);color:#fed7aa;font-size:0.5em;font-weight:700;margin-left:8px;vertical-align:middle;">Cloudflare Workers 版</span></h1>';
+    html += '<div class="meta">';
+    html += '<div class="pill"><span class="' + qDot + '"></span>' + qText + '</div>';
+    html += '<div class="pill"><a href="https://github.com/kanchairen-d/fengshows" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> GitHub</a></div>';
+    html += '</div>';
+    html += '</section>';
+    html += '<h2 class="section-title">频道快捷入口</h2>';
+    html += '<section class="grid">' + channelsHtml + '</section>';
+    html += '<div class="footer">';
+    html += '<div>使用说明：</div>';
+    html += '<div>1. 配置账号：在 Cloudflare Workers 后台 → 设置 → 变量和环境变量，添加 <code>PHONE</code> 和 <code>PASSWORD</code> 即可解锁 720P 高清画质。</div>';
+    html += '<div>2. 点击"立即播放"直接跳转直播流，或点击"复制播放地址"在 VLC/PotPlayer 中播放。</div>';
+    html += '<div>3. 凤凰秀已屏蔽 APTV 等播放器的默认 UA，如遇无法播放，修改播放器 User-Agent 为手机浏览器即可，推荐：<code>Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.230 Mobile Safari/537.36</code></div>';
+    html += '</div>';
+    html += '</div></body></html>';
+
+    return html;
+}
+
+export default {
+ async fetch(request, env, ctx) {
+ const url = new URL(request.url);
+ const path = url.pathname.split('/').filter(Boolean);
+
+ // 根路径 → 显示 Web 页面
+ if (path.length === 0) {
+     const domain = url.hostname + (url.port ? ':' + url.port : '');
+     const hasAccount = !!(env.PHONE && env.PASSWORD);
+     return new Response(buildPage(domain, hasAccount), {
+         headers: { "Content-Type": "text/html; charset=utf-8" }
+     });
+ }
+
+ const id = path[0] || 'fhzw';
+ const chid = CHANNELS[id];
+ if (!chid) {
+ return new Response("Invalid Channel ID", { status: 400 });
+ }
+ let token = null;
+ let quality = 'hd';
+ if (env.PHONE && env.PASSWORD) {
+ token = await getValidToken(env);
+ if (token) {
+ quality = 'fhd';
+ }
+ }
+ const apiUrl = `https://api.fengshows.cn/hub/live/auth-url?live_qa=${quality}&live_id=${chid}`;
+ const headers = {
+ "User-Agent": "Mozilla/5.0 (Linux; Android 10; SM-G960U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.181 Mobile Safari/537.36",
+ "Referer": "https://www.fengshows.com/live",
+ "Origin": "https://www.fengshows.com",
+ };
+ if (token) {
+ headers["Token"] = token;
+ }
+ try {
+ const response = await fetch(apiUrl, { headers });
+ const data = await response.json();
+ if (data && data.data && data.data.live_url) {
+ return Response.redirect(data.data.live_url, 302);
+ } else {
+ if (quality === 'fhd') {
+ const fallbackUrl = `https://api.fengshows.cn/hub/live/auth-url?live_qa=hd&live_id=${chid}`;
+ const fallbackRes = await fetch(fallbackUrl, { headers: { ...headers, Token: '' } });
+ const fallbackData = await fallbackRes.json();
+ if (fallbackData && fallbackData.data && fallbackData.data.live_url) {
+ return Response.redirect(fallbackData.data.live_url, 302);
+ }
+ }
+ return new Response(JSON.stringify(data), { status: 500, headers: { "Content-Type": "application/json" } });
+ }
+ } catch (e) {
+ return new Response(e.message, { status: 500 });
+ }
+ }
+};
+async function getValidToken(env) {
+ if (cachedToken && validateJWT(cachedToken)) {
+ return cachedToken;
+ }
+ const loginUrl = "https://m.fengshows.com/api/v3/mp/user/login";
+ const body = {
+ "code": "86",
+ "keep_alive": false,
+ "password": env.PASSWORD,
+ "phone": env.PHONE,
+ };
+ try {
+ const response = await fetch(loginUrl, {
+ method: "POST",
+ headers: { "Content-Type": "application/json" },
+ body: JSON.stringify(body)
+ });
+ const data = await response.json();
+ if (data.message === "ok") {
+ cachedToken = data.data.token;
+ return cachedToken;
+ }
+ } catch (e) {
+ console.error("Login failed:", e);
+ }
+ return null;
+}
+function validateJWT(token) {
+ try {
+ const parts = token.split('.');
+ if (parts.length !== 3) return false;
+ let payloadBase64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+ while (payloadBase64.length % 4) {
+ payloadBase64 += '=';
+ }
+ const payload = JSON.parse(atob(payloadBase64));
+ const exp = payload.exp;
+ if (!exp) return true;
+ return exp > (Math.floor(Date.now() / 1000) + 300);
+ } catch (e) {
+ return false;
+ }
+}
