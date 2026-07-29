@@ -1,0 +1,14 @@
+services:
+  fengshows:
+    image: ghcr.io/kanchairen-d/fengshows:latest
+    container_name: fengshows
+    ports:
+      - "3233:3233"
+    environment:
+      - PORT=3233
+      # 取消注释并填写账号即可解锁 720P 高清
+      # - PHONE=你的手机号
+      # - PASSWORD=你的密码
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
